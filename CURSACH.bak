@@ -1,6 +1,6 @@
 program TVGUID05;
 
-uses Objects, Drivers, Views, Menus, App, SysUtils, DateUtils , CURSACH1;
+uses Objects, Drivers, Views, Menus, App, SysUtils, DateUtils;
 
 const
   WinCount: Integer =   0;
@@ -16,6 +16,51 @@ type
        //Function WordToString: Word; virtual;
   end;
 
+type 
+	TimerHelper = object
+		FutureTime, PrevTime : TDateTime;
+		remHours, remMins, remSecs, remMS, pastHours, pastMins, pastSecs, pastMS : Word;
+		secondsRemaining : Integer;
+		GoodbyeString : String;
+		constructor Init (var FutTime : TDateTime);
+		Procedure ChangeDates;
+		//Procedure SetTimer;
+		Procedure Over (gdByeStr : String);
+end;
+
+
+	constructor TimerHelper.Init(FutTime : TDateTime);
+	var secondsBetweenDates : Word;
+	hour, min, sec, ms : Word;
+	tmpDate : TDateTime;
+	begin
+		PrevTime := Now;
+		FutureTime := FutTime;
+		tmpDate := FutTime - Now;
+		DecodeTime(tmpDate, hour, min, sec, ms);
+		secondsBetweenDates := 3600 * hour + 60 * min + sec;
+		
+	end;
+	
+	
+	procedure TimerHelper.ChangeDates;
+	var current, remainingTime, pastTime : TDateTime;
+	tmpms : Word;
+	begin
+		current := Now;
+		pastTime := PrevTime - current;
+		remainingTime := FutureTime - current;
+		DecodeTime(remainingTime, remHours, remMins, remSecs, tmpms);
+		DecodeTime(pastTime, pastHours, pastMins, pastSecs, tmpms);
+		secondsRemaining :=  secondsRemaining - 1;
+	end;
+	
+	
+	procedure TimerHelper.Over (gdByeStr : String);
+	begin
+		GoodbyeString := gdByeStr;
+	end;
+	
 
   PDemoWindow = ^TDemoWindow;
   TDemoWindow = object(TWindow)
@@ -48,27 +93,26 @@ var
 begin
   //GetTime(Hour,Min,Sec,HSec);
   //Greeting := 'Today : ' + Days[Dow] + ', ' + D  + '.'+ M + '.'+ Y ;
-  Greeting := TimeToStr(Time);
-  OneMoreGreeting := TimeToStr(Time - StrToTime ('0:0:1'));
+ { Greeting := TimeToStr(Time);
+  OneMoreGreeting := TimeToStr(Time - StrToTime ('0:0:1'));}
   TView.Draw;
   WriteStr(4, 2, Greeting, $01);
   WriteStr(4, 3, OneMoreGreeting, $01);
-  OneSec := Time;
-  Helper := new (PTimerHelper, Init(OneSec));
-
   {
-	Helper = Helper.Init(StrToTime(//тут строка с вывода))
-	while (Helper.remainingTime != 0) do
+	Helper := new Helper.Init(StrToTime(//тут строка с вывода))
+    
+    // Helper:=New(PTimerHelper, Init(FutDate))
+	while (Helper.remainingTime <> 0) do
 	begin
 		//изменяем строки с оставшимся временем и прошедшем временем
-		Helper.ChangeDates();
+		Helper (^. || . )ChangeDates;
 		delay(1000);
 	end;
 	Helper.Done('Timer Done!');
 	// выводим сообщение с помрщью поля goodbye string
   }
-
-
+  
+  
 end;
 
 { TDemoWindow }
@@ -129,7 +173,7 @@ begin
     NewStatusDef(0, $FFFF,
       NewStatusKey('', kbF10, cmMenu,
       NewStatusKey('~Alt-X~ Exit', kbAltX, cmQuit,
-      NewStatusKey('~F4~ New Alarm', kbF4, cmNewWin,
+      NewStatusKey('~F4~ New', kbF4, cmNewWin,
       NewStatusKey('~Alt-F3~ Close', kbAltF3, cmClose,
       nil)))),
     nil)
@@ -144,7 +188,7 @@ begin
   Inc(WinCount);
   R.Assign(0, 0, 24, 7);
   R.Move(Random(55), Random(16));
-  Window := New(PDemoWindow, Init(R, 'Alarm ', WinCount));
+  Window := New(PDemoWindow, Init(R, 'Demo Window', WinCount));
   DeskTop^.Insert(Window);
 end;
 
