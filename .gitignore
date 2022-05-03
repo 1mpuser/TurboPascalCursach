@@ -3,3 +3,5 @@
 *.ouy
 *.o
 *.out
+*.bak
+**/out
